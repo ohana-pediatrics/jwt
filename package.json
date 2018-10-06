@@ -1,5 +1,5 @@
 {
-  "name": "koa-jwt",
+  "name": "@ohanapediatrics/koa-jwt",
   "version": "3.5.1",
   "description": "Koa JWT authentication middleware.",
   "types": "types/index.d.ts",
@@ -19,16 +19,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/koajs/jwt.git"
+    "url": "git://github.com/ohana-pediatrics/jwt.git"
   },
   "bugs": {
-    "url": "https://github.com/koajs/jwt/issues"
+    "url": "https://github.com/ohana-pediatrics/jwt/issues"
   },
-  "homepage": "https://github.com/koajs/jwt",
+  "homepage": "https://github.com/ohana-pediatrics/jwt",
   "author": {
-    "name": "Stian Grytøyr",
-    "email": "stian@grytoyr.net",
-    "url": "http://stian.grytoyr.net/"
+    "name": "Dan Rumney",
+    "email": "dan.rumney@ohanapediatrics.com"
   },
   "license": "MIT",
   "main": "./lib",
