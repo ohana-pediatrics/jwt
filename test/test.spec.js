@@ -14,48 +14,63 @@ describe('failure tests', () => {
 
   it('should throw 401 if no authorization header', done => {
     const app = new Koa();
-
     app.use(koajwt({ secret: 'shhhh' }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .expect(401)
       .expect('Authentication Error')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw 401 if no authorization header', done => {
     const app = new Koa();
 
     app.use(koajwt({ secret: 'shhhh', debug: true }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .expect(401)
       .expect('Token not found')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should return 401 if authorization header is malformed', done => {
     const app = new Koa();
 
     app.use(koajwt({ secret: 'shhhh' }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'wrong')
       .expect(401)
       .expect('Bad Authorization header format. Format is "Authorization: Bearer <token>"')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should return 401 if authorization header does not start with Bearer', done => {
     const app = new Koa();
 
     app.use(koajwt({ secret: 'shhhh' }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearskin Jacket')
       .expect(401)
       .expect('Bad Authorization header format. Format is "Authorization: Bearer <token>"')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should allow provided getToken function to throw', done => {
@@ -65,11 +80,15 @@ describe('failure tests', () => {
       secret: 'shhhh',
       getToken: ctx => ctx.throw(401, 'Bad Authorization')
     }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .expect(401)
       .expect('Bad Authorization')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if getToken function returns invalid jwt', done => {
@@ -80,23 +99,31 @@ describe('failure tests', () => {
       getToken: () => jwt.sign({foo: 'bar'}, 'bad'),
       debug: true
     }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .expect(401)
       .expect('invalid signature')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if authorization header is not well-formatted jwt', done => {
     const app = new Koa();
 
     app.use(koajwt({ secret: 'shhhh', debug: true }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer wrongjwt')
       .expect(401)
       .expect('jwt malformed')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if authorization header is not valid jwt', done => {
@@ -106,12 +133,16 @@ describe('failure tests', () => {
     const app = new Koa();
 
     app.use(koajwt({ secret: 'different-shhhh', debug: true }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('invalid signature')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if authorization header is not valid jwt according to any secret', done => {
@@ -121,12 +152,16 @@ describe('failure tests', () => {
     const app = new Koa();
 
     app.use(koajwt({ secret: ['different-shhhh', 'some-other-shhhhh'], debug: true }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('invalid signature')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw non-descriptive errors when debug is false', done => {
@@ -136,12 +171,16 @@ describe('failure tests', () => {
     const app = new Koa();
 
     app.use(koajwt({ secret: 'different-shhhh', debug: false }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('Authentication Error')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if opts.cookies is set and the specified cookie is not well-formatted jwt', done => {
@@ -153,12 +192,16 @@ describe('failure tests', () => {
     app.use(koajwt({ secret: secret, cookie: 'jwt', debug: true }));
     app.use(ctx => { ctx.body = ctx.state.user; });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Cookie', 'jwt=bad' + token + ';')
       .expect(401)
       .expect('invalid token')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
 
   });
 
@@ -173,12 +216,16 @@ describe('failure tests', () => {
       debug: true
     }));
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('jwt audience invalid. expected: not-expected-audience')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if token is expired', done => {
@@ -188,12 +235,16 @@ describe('failure tests', () => {
     const app = new Koa();
     app.use(koajwt({ secret: 'shhhhhh', debug: true }));
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('jwt expired')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw with original jsonwebtoken error as originalError property', done => {
@@ -210,12 +261,16 @@ describe('failure tests', () => {
       });
     });
     app.use(koajwt({ secret: 'shhhhhh', debug: true }));
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('jwt expired')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if token issuer is wrong', done => {
@@ -225,12 +280,16 @@ describe('failure tests', () => {
     const app = new Koa();
     app.use(koajwt({ secret: 'shhhhhh', issuer: 'http://wrong', debug: true }));
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('jwt issuer invalid. expected: http://wrong')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if secret neither provided by options or middleware', done => {
@@ -240,12 +299,16 @@ describe('failure tests', () => {
     const app = new Koa();
     app.use(koajwt({debug: true}));
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('Secret not provided')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if secret both provided by options (right secret) and middleware (wrong secret)', done => {
@@ -255,12 +318,16 @@ describe('failure tests', () => {
     const app = new Koa();
     app.use(koajwt({secret: 'wrong secret', debug: true}));
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('invalid signature')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw 401 if isRevoked throw error', done => {
@@ -273,12 +340,16 @@ describe('failure tests', () => {
 
     app.use(koajwt({ secret: secret, isRevoked, debug: true }));
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('Token revocation check error')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw 401 if revoked token', done => {
@@ -291,12 +362,16 @@ describe('failure tests', () => {
 
     app.use(koajwt({ secret: secret, isRevoked, debug: true }));
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('Token revoked')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if secret provider rejects', done => {
@@ -312,12 +387,16 @@ describe('failure tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('Not supported')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if secret provider used but token invalid', done => {
@@ -333,12 +412,16 @@ describe('failure tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer dodgytoken')
       .expect(401)
       .expect('Invalid token')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if secret provider returns a secret that does not match jwt', done => {
@@ -354,12 +437,16 @@ describe('failure tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('invalid signature')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should throw if no secret provider returns a secret that matches jwt', done => {
@@ -375,12 +462,16 @@ describe('failure tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(401)
       .expect('invalid signature')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should call the onError handler if there is a problem', done => {
@@ -393,13 +484,15 @@ describe('failure tests', () => {
 
       app.use(koajwt({ secret: secret, isRevoked, debug: true, onError: handler}));
 
-      request(app.listen())
+    const server = app.listen();
+    request(server)
           .get('/')
           .set('Authorization', 'Bearer ' + token)
           .expect(401)
           .expect('Token revoked')
           .end((...args) => {
             expect(handler).to.have.been.called;
+            server.close()
             done(...args);
           });
   });
@@ -414,11 +507,15 @@ describe('passthrough tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .expect(204) // No content
       .expect('')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should call onError even if `passthrough` is true', done => {
@@ -430,12 +527,14 @@ describe('passthrough tests', () => {
           ctx.body = ctx.state.user;
       });
 
-      request(app.listen())
+    const server = app.listen();
+    request(server)
           .get('/')
           .expect(204) // No content
           .expect('')
           .end((...args) => {
               expect(handler).to.have.been.called;
+              server.close();
               done(...args);
           });
   });
@@ -448,12 +547,16 @@ describe('passthrough tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'liver and onions')
       .expect(204) // No content
       .expect('')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 });
 
@@ -473,12 +576,16 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should work if authorization header is valid jwt according to one of the secrets', done => {
@@ -494,12 +601,16 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should work if the provided getToken function returns a valid jwt', done => {
@@ -514,11 +625,15 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/?token=' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should use the first resolved token', done => {
@@ -535,13 +650,17 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Cookie', 'jwt=' + token + ';')
       .set('Authorization', 'Bearer ' + invalidToken)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should work if opts.cookies is set and the specified cookie contains valid jwt', done => {
@@ -557,12 +676,16 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Cookie', 'jwt=' + token + ';')
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
 
   });
 
@@ -579,12 +702,16 @@ describe('success tests', () => {
       ctx.body = ctx.state.jwtdata;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
 
   });
 
@@ -605,12 +732,16 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
         .get('/')
         .set('Authorization', 'Bearer ' + token)
         .expect(200)
         .expect(validUserResponse)
-        .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should work if secret is provided by secret provider function', done => {
@@ -627,12 +758,16 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should work if a valid secret is provided by one of the secret provider functions', done => {
@@ -649,12 +784,16 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should not overwrite ctx.state.token on successful token verification if opts.tokenKey is undefined', done => {
@@ -674,12 +813,16 @@ describe('success tests', () => {
       ctx.body = { token: ctx.state.token };
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should populate the raw token to ctx.state, in key from opts.tokenKey', done => {
@@ -695,12 +838,16 @@ describe('success tests', () => {
       ctx.body = { token: ctx.state.testTokenKey };
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should use middleware secret if both middleware and options provided', done => {
@@ -720,12 +867,16 @@ describe('success tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
         .get('/')
         .set('Authorization', 'Bearer ' + token)
         .expect(200)
         .expect(validUserResponse)
-        .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 });
 
@@ -742,12 +893,16 @@ describe('unless tests', () => {
       ctx.body = { success: true };
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/public')
       .set('Authorization', 'wrong')
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should fail if the route is not excluded', done => {
@@ -761,12 +916,16 @@ describe('unless tests', () => {
       ctx.body = { success: true };
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/private')
       .set('Authorization', 'wrong')
       .expect(401)
       .expect('Bad Authorization header format. Format is "Authorization: Bearer <token>"')
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should pass if the route is not excluded and the token is present', done => {
@@ -782,12 +941,16 @@ describe('unless tests', () => {
       ctx.body = ctx.state.jwtdata;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 
   it('should work if authorization header is valid jwt and is not revoked', done => {
@@ -805,11 +968,15 @@ describe('unless tests', () => {
       ctx.body = ctx.state.user;
     });
 
-    request(app.listen())
+    const server = app.listen();
+    request(server)
       .get('/')
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .expect(validUserResponse)
-      .end(done);
+      .end((err, res) => {
+        server.close();
+        done(err, res);
+      });
   });
 });
